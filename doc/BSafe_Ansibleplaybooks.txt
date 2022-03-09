@@ -1,0 +1,40 @@
+::::::::::::::
+0_clone_repo.yaml
+::::::::::::::
+- hosts: localhost
+  tasks:
+  - name: Clone BSafeProject github repository
+    git:
+      repo: https://github.com/rajib2k5/BSafeProject
+      dest: /project/ansible_project/BSafeProject/
+      clone: yes
+      update: yes
+	  
+::::::::::::::
+1_build_repo.yaml
+::::::::::::::
+- hosts: localhost
+  tasks:
+  - name: Build BSafeProject Python app
+    # replicate production build and config tasks
+    shell: |
+         cd /project/ansible_project/BSafeProject/
+         cp /project/ansible_project/BSafeProject/conf/env.properties.j2 /project/ansible_project/BSafeProject/conf/env.properties
+		 docker build . -t bsafeproject
+
+::::::::::::::
+2_deploy.yaml
+::::::::::::::
+- hosts: localhost
+  tasks:
+  - name: Deploy Production Config
+    shell: |
+         echo Deploying production configuration file
+         docker cp /project/ansible_project/BSafeProject/conf/env.properties.j2 80e53a3e0c34:/app/conf/env.properties
+  - name: Post Deployment cleanup
+    #become: true
+    #become_user: root
+    shell: |
+         echo Go back to project directory and stash local git so we can deploy next time
+         cd /project/ansible_project/BSafeProject/
+         git stash

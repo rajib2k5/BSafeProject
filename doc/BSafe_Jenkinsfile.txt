@@ -1,0 +1,42 @@
+pipeline {
+    agent any
+
+    stages {
+        stage('Ansible Playbook to clone code...') {
+            steps {
+                echo 'Clone repo'
+                ansiblePlaybook installation: 'Ansible', playbook: '/project/ansible_project/0_clone_repo.yaml'
+            }
+
+            post { 
+                success { 
+                    echo 'Done with cloning...'
+                }
+            }
+        }
+        stage('Ansible Playbook to build code...') {
+            steps {
+                echo 'Build code using maven...' 
+                ansiblePlaybook installation: 'Ansible', playbook: '/project/ansible_project/1_build_repo.yaml'
+            }
+
+            post { 
+                success { 
+                    echo 'Done with building...'
+                }
+            }
+        }
+        stage('Ansible Playbook to deploy production configuration & cleanup...') {
+            steps {
+                echo 'Deploy production artifacts...' 
+                ansiblePlaybook installation: 'Ansible', playbook: '/project/ansible_project/2_deploy.yaml'
+            }
+
+            post { 
+                success { 
+                    echo 'Done with deploying...'
+                }
+            }
+        } 
+    }
+}
